@@ -2,6 +2,11 @@
 <html>
   <head><title>Game</title></head>
   <body>
+    <style>
+      body {
+        background-color: black;
+      }
+    </style>
     <embed
       id="pnacl"
       width="200" height="200"
@@ -24,7 +29,7 @@
 
       // Dump data for Progress Events:
       pnacl.addEventListener('loadstart', log_handler("loadstart"));
-      pnacl.addEventListener('progress', log_handler("progress"));
+      // pnacl.addEventListener('progress', log_handler("progress"));
       pnacl.addEventListener('load', log_handler("load"));
       pnacl.addEventListener('error', log_handler("error"));
       pnacl.addEventListener('abort', log_handler("abort"));
@@ -39,8 +44,7 @@
 
       // Handle Native Client-specific events:
       pnacl.addEventListener('message', function (ev) {
-        var output = document.getElementById("output");
-        output.textContent += ev.data;
+        console.log(ev.data);
       });
       pnacl.addEventListener('crash', function () {
         console.log("Exit code:", pnacl.exitStatus);
