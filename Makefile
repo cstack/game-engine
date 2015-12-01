@@ -11,10 +11,13 @@ PPAPI_LIBDIR=$(PEPPER)/lib/pnacl/$(BUILD_VARIANT)
 LIBS=-lppapi_simple -lppapi -lppapi_cpp -lnacl_io
 
 game.o: game.cc
-	$(CXX) -c -o game.o -pthread -I $(PPAPI_INCLUDE) game.cc
+	$(CXX) -c -o game.o -pthread game.cc
 
-minimal_unstripped.bc: game.o
-	$(LINK) -o minimal_unstripped.bc -pthread -L "$(PPAPI_LIBDIR)" game.o $(LIBS)
+nacl.o: platform/nacl.cc
+	$(CXX) -c -o nacl.o -pthread -I $(PPAPI_INCLUDE) platform/nacl.cc
+
+minimal_unstripped.bc: game.o nacl.o
+	$(LINK) -o minimal_unstripped.bc -pthread -L "$(PPAPI_LIBDIR)" game.o nacl.o $(LIBS)
 
 game.pexe: minimal_unstripped.bc
 	$(FINALIZE) -o game.pexe minimal_unstripped.bc
