@@ -5,16 +5,17 @@
 
 double TARGET_FRAME_RATE = 60;
 
-void update(double dt, PSContext2D_t* ctx) {
-  // Update and render
-  PSContext2DGetBuffer(ctx);
+struct pixel_buffer_t {
+  int32_t height;
+  uint32_t stride;
+  uint32_t* data;
+};
 
-  if (NULL == ctx->data) return;
+void update(double dt, pixel_buffer_t* pixel_buffer) {
+  // Update and render
 
   // Clear to WHITE
-  memset(ctx->data, 0xFF, ctx->stride * ctx->height);
-
-  PSContext2DSwapBuffer(ctx);
+  memset(pixel_buffer->data, 0xFF, pixel_buffer->stride * pixel_buffer->height);
 }
 
 double seconds() {
@@ -28,6 +29,8 @@ int game_main(int argc, char* argv[]) {
   PSEventSetFilter(PSE_ALL);
 
   PSContext2D_t* ctx = PSContext2DAllocate(PP_IMAGEDATAFORMAT_BGRA_PREMUL);
+  pixel_buffer_t* pixel_buffer = new pixel_buffer_t;
+
   double timeLastStep;
   double timeThisStep;
   double dt;
@@ -45,7 +48,13 @@ int game_main(int argc, char* argv[]) {
         timeLastStep = seconds();
       timeThisStep = seconds();
       dt = timeThisStep - timeLastStep;
-      update(dt, ctx);
+      PSContext2DGetBuffer(ctx);
+      if (NULL == ctx->data) continue;
+      pixel_buffer->height = ctx->height;
+      pixel_buffer->stride = ctx->stride;
+      pixel_buffer->data = ctx->data;
+      update(dt, pixel_buffer);
+      PSContext2DSwapBuffer(ctx);
       timeLastStep = timeThisStep;
       usleep(1000000/TARGET_FRAME_RATE);
     } else {
@@ -56,6 +65,8 @@ int game_main(int argc, char* argv[]) {
       PSEventRelease(event);
     }
   }
+
+  delete pixel_buffer;
 
   return 0;
 }
