@@ -40,6 +40,7 @@ int game_main(int argc, char* argv[]) {
       PSContext2DGetBuffer(ctx);
       if (NULL == ctx->data) continue;
       pixel_buffer->height = ctx->height;
+      pixel_buffer->width = ctx->width;
       pixel_buffer->stride = ctx->stride;
       pixel_buffer->data = ctx->data;
       update(dt, pixel_buffer);
