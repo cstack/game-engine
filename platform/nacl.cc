@@ -1,3 +1,4 @@
+#include <ppapi/cpp/input_event.h>
 #include <ppapi_simple/ps_main.h>
 #include <ppapi_simple/ps_context_2d.h>
 #include <iostream>
@@ -11,6 +12,26 @@ double seconds() {
   struct timeval tp;
   gettimeofday(&tp, NULL);
   return tp.tv_sec + tp.tv_usec / 1000000.0;
+}
+
+void handle_key(uint32_t key_code, bool down) {
+  std::cout << "key_code " << key_code << " " << down << std::endl;
+}
+
+void handle_event(PSEvent* ps_event) {
+  if (ps_event->type == PSE_INSTANCE_HANDLEINPUT) {
+    pp::InputEvent event(ps_event->as_resource);
+    switch (event.GetType()) {
+      case PP_INPUTEVENT_TYPE_KEYDOWN:
+      case PP_INPUTEVENT_TYPE_KEYUP: {
+        pp::KeyboardInputEvent key(event);
+        handle_key(key.GetKeyCode(), event.GetType() == PP_INPUTEVENT_TYPE_KEYDOWN);
+        break;
+      }
+      default:
+        break;
+    }
+  }
 }
 
 int game_main(int argc, char* argv[]) {
@@ -28,7 +49,9 @@ int game_main(int argc, char* argv[]) {
 
     // Consume all available events
     while ((event = PSEventTryAcquire()) != NULL) {
-      PSContext2DHandleEvent(ctx, event);
+      if (0 == PSContext2DHandleEvent(ctx, event)) {
+        handle_event(event);
+      }
       PSEventRelease(event);
     }
 

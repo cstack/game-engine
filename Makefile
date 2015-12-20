@@ -8,7 +8,7 @@ LINK=$(CXX)
 FINALIZE=$(TOOLCHAIN)/pnacl-finalize
 PPAPI_INCLUDE=$(PEPPER)/include
 PPAPI_LIBDIR=$(PEPPER)/lib/pnacl/$(BUILD_VARIANT)
-LIBS=-lppapi_simple -lppapi -lppapi_cpp -lnacl_io
+LIBS=-lppapi_simple_cpp -lnacl_io -lsdk_util -lppapi_cpp -lppapi -lpthread
 
 game.o: game.cc
 	$(CXX) -c -o game.o -pthread game.cc
