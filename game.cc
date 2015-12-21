@@ -3,6 +3,13 @@
 #include <string.h>
 #include <iostream>
 
+struct games_state_t {
+  games_state_t() : initialized(false) {}
+  bool initialized;
+  double player_x;
+  double player_y;
+} game_state;
+
 int round(double value) {
   return (int) (value + 0.5);
 }
@@ -13,6 +20,11 @@ color_t rgb(double red, double green, double blue) {
   uint blue_component = round(blue);
   return red_component | green_component | blue_component;
 }
+
+const double PLAYER_WIDTH = 50;
+const double PLAYER_HEIGHT = 50;
+const color_t PLAYER_COLOR = rgb(150.3, 250.5, 20.6);
+const double PLAYER_SPEED = 128; // in pixels per second
 
 double clip(double value, double min, double max) {
   if (value < min)
@@ -40,8 +52,46 @@ void draw_box(pixel_buffer_t* pixel_buffer, double x, double y, double width, do
   }
 }
 
-void update(double dt, pixel_buffer_t* pixel_buffer) {
-  // Update and render
+void initialize_game_state(games_state_t &game_state) {
+  game_state.player_x = 100;
+  game_state.player_y = 100;
+
+  game_state.initialized = true;
+}
+
+void clear_screen(pixel_buffer_t* pixel_buffer) {
+  draw_box(pixel_buffer, 0, 0, pixel_buffer->width, pixel_buffer->height, BLACK);
+}
+
+void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
+  if (!game_state.initialized) {
+    initialize_game_state(game_state);
+  }
+
+  clear_screen(pixel_buffer);
+
+  if (controller.right_pressed) {
+    game_state.player_x += PLAYER_SPEED * dt;
+  }
+  if (controller.left_pressed) {
+    game_state.player_x -= PLAYER_SPEED * dt;
+  }
+  if (controller.up_pressed) {
+    game_state.player_y -= PLAYER_SPEED * dt;
+  }
+  if (controller.down_pressed) {
+    game_state.player_y += PLAYER_SPEED * dt;
+  }
+
+  draw_box(
+    pixel_buffer,
+    game_state.player_x,
+    game_state.player_y,
+    PLAYER_WIDTH,
+    PLAYER_HEIGHT,
+    PLAYER_COLOR
+  );
+
   color_t color = rgb(150.3, 250.5, 20.6);
   draw_box(pixel_buffer, -10, 90, 40, 10, color);
   draw_box(pixel_buffer, 30, 20, 100, 50, BLUE);

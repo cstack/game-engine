@@ -10,6 +10,14 @@ struct pixel_buffer_t {
   pixel_t* data;
 };
 
+struct controller_t {
+  bool right_pressed;
+  bool left_pressed;
+  bool up_pressed;
+  bool down_pressed;
+  bool jump_pressed;
+};
+
 const color_t BLACK = 0x00000000;
 const color_t BLUE = 0x000000FF;
 const color_t GREEN = 0x0000FF00;
@@ -19,4 +27,4 @@ const color_t MAGENTA = 0x00FF00FF;
 const color_t YELLOW = 0x00FFFF00;
 const color_t WHITE = 0x00FFFFFF;
 
-void update(double dt, pixel_buffer_t* pixel_buffer);
+void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller);
