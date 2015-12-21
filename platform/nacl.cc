@@ -15,7 +15,6 @@ double seconds() {
 }
 
 void handle_key(uint32_t key_code, bool down, controller_t &controller) {
-  std::cout << "key_code " << key_code << " " << down << std::endl;
   switch(key_code) {
     case(39):
       controller.right_pressed = down;

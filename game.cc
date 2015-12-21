@@ -1,7 +1,14 @@
 #include "platform/platform.h"
+#include "engine/color.h"
+#include "engine/util.h"
 
 #include <string.h>
 #include <iostream>
+
+const double PLAYER_WIDTH = 50;
+const double PLAYER_HEIGHT = 50;
+const color_t PLAYER_COLOR = rgb(150.3, 250.5, 20.6);
+const double PLAYER_SPEED = 128; // in pixels per second
 
 struct games_state_t {
   games_state_t() : initialized(false) {}
@@ -9,30 +16,6 @@ struct games_state_t {
   double player_x;
   double player_y;
 } game_state;
-
-int round(double value) {
-  return (int) (value + 0.5);
-}
-
-color_t rgb(double red, double green, double blue) {
-  uint red_component = round(red) << 16;
-  uint green_component = round(green) << 8;
-  uint blue_component = round(blue);
-  return red_component | green_component | blue_component;
-}
-
-const double PLAYER_WIDTH = 50;
-const double PLAYER_HEIGHT = 50;
-const color_t PLAYER_COLOR = rgb(150.3, 250.5, 20.6);
-const double PLAYER_SPEED = 128; // in pixels per second
-
-double clip(double value, double min, double max) {
-  if (value < min)
-    value = min;
-  if (value > max)
-    value = max;
-  return value;
-}
 
 void put_pixel(pixel_buffer_t* pixel_buffer, uint x, uint y, color_t color) {
   uint offset = pixel_buffer->width * y + x;
