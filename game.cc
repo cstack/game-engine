@@ -54,7 +54,7 @@ void draw_box(pixel_buffer_t* pixel_buffer, double x, double y, double width, do
 
 void initialize_game_state(games_state_t &game_state) {
   game_state.player_x = TILE_WIDTH*2;
-  game_state.player_y = TILE_HEIGHT*4;
+  game_state.player_y = TILE_HEIGHT*5;
 
   game_state.initialized = true;
 }
@@ -100,8 +100,8 @@ void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
 
   draw_box(
     pixel_buffer,
-    game_state.player_x,
-    game_state.player_y,
+    game_state.player_x - PLAYER_WIDTH/2,
+    game_state.player_y - PLAYER_HEIGHT,
     PLAYER_WIDTH,
     PLAYER_HEIGHT,
     PLAYER_COLOR
