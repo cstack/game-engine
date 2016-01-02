@@ -5,8 +5,25 @@
 #include <string.h>
 #include <iostream>
 
-const double PLAYER_WIDTH = 50;
-const double PLAYER_HEIGHT = 50;
+const uint TILE_MAP_WIDTH = 16;
+const uint TILE_MAP_HEIGHT = 9;
+const uint TILE_WIDTH = 1024 / TILE_MAP_WIDTH;
+const uint TILE_HEIGHT = 576 / TILE_MAP_HEIGHT;
+const color_t TILE_COLOR = rgb(100, 100, 100);
+const bool TILE_MAP[TILE_MAP_HEIGHT][TILE_MAP_WIDTH] = {
+  {1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1},
+  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+  {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
+  {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+  {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0},
+  {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+  {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
+  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+  {1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1},
+};
+
+const double PLAYER_WIDTH = TILE_WIDTH;
+const double PLAYER_HEIGHT = PLAYER_WIDTH;
 const color_t PLAYER_COLOR = rgb(150.3, 250.5, 20.6);
 const double PLAYER_SPEED = 128; // in pixels per second
 
@@ -36,8 +53,8 @@ void draw_box(pixel_buffer_t* pixel_buffer, double x, double y, double width, do
 }
 
 void initialize_game_state(games_state_t &game_state) {
-  game_state.player_x = 100;
-  game_state.player_y = 100;
+  game_state.player_x = TILE_WIDTH*2;
+  game_state.player_y = TILE_HEIGHT*4;
 
   game_state.initialized = true;
 }
@@ -66,6 +83,21 @@ void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
     game_state.player_y += PLAYER_SPEED * dt;
   }
 
+  for (int row=0; row < TILE_MAP_HEIGHT; row++) {
+    for (int col=0; col < TILE_MAP_WIDTH; col++) {
+      if (TILE_MAP[row][col]) {
+        draw_box(
+          pixel_buffer,
+          col*TILE_WIDTH,
+          row*TILE_HEIGHT,
+          TILE_WIDTH,
+          TILE_HEIGHT,
+          TILE_COLOR
+        );
+      }
+    }
+  }
+
   draw_box(
     pixel_buffer,
     game_state.player_x,
@@ -74,9 +106,4 @@ void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
     PLAYER_HEIGHT,
     PLAYER_COLOR
   );
-
-  color_t color = rgb(150.3, 250.5, 20.6);
-  draw_box(pixel_buffer, -10, 90, 40, 10, color);
-  draw_box(pixel_buffer, 30, 20, 100, 50, BLUE);
-  draw_box(pixel_buffer, 40, 30, 20, 140, GREEN);
 }
