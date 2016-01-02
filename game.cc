@@ -66,14 +66,15 @@ void clear_screen(pixel_buffer_t* pixel_buffer) {
   draw_box(pixel_buffer, 0, 0, pixel_buffer->width, pixel_buffer->height, BLACK);
 }
 
-bool valid_player_location(double x, double y) {
-  if (x < 0 || y < 0 || x > SCREEN_WIDTH || y > SCREEN_HEIGHT) {
-    return false;
-  }
+bool location_occupied(double x, double y) {
   uint row = y / TILE_HEIGHT;
   uint col = x / TILE_WIDTH;
-  bool occupied = TILE_MAP[row][col];
-  return !occupied;
+  return TILE_MAP[row][col];
+}
+
+bool valid_player_location(double x, double y) {
+  return !location_occupied(x - PLAYER_WIDTH/2, y) &&
+    !location_occupied(x + PLAYER_WIDTH/2, y);
 }
 
 void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
