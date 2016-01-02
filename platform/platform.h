@@ -1,3 +1,6 @@
+#ifndef PLATFORM_H
+#define PLATFORM_H
+
 #include <stdint.h>
 
 typedef uint32_t pixel_t;
@@ -18,3 +21,5 @@ struct controller_t {
 };
 
 void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller);
+
+#endif

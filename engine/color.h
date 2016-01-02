@@ -1,3 +1,6 @@
+#ifndef COLOR_H
+#define COLOR_H
+
 #include <stdint.h>
 
 typedef uint32_t color_t;
@@ -12,3 +15,5 @@ const color_t YELLOW = 0x00FFFF00;
 const color_t WHITE = 0x00FFFFFF;
 
 color_t rgb(double red, double green, double blue);
+
+#endif

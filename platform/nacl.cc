@@ -10,7 +10,7 @@ double TARGET_FRAME_RATE = 60;
 
 double seconds() {
   struct timeval tp;
-  gettimeofday(&tp, NULL);
+  gettimeofday(&tp, nullptr);
   return tp.tv_sec + tp.tv_usec / 1000000.0;
 }
 
@@ -66,7 +66,7 @@ int game_main(int argc, char* argv[]) {
     PSEvent* event;
 
     // Consume all available events
-    while ((event = PSEventTryAcquire()) != NULL) {
+    while ((event = PSEventTryAcquire()) != nullptr) {
       if (0 == PSContext2DHandleEvent(ctx, event)) {
         handle_event(event, controller);
       }
@@ -79,7 +79,7 @@ int game_main(int argc, char* argv[]) {
       timeThisStep = seconds();
       dt = timeThisStep - timeLastStep;
       PSContext2DGetBuffer(ctx);
-      if (NULL == ctx->data) continue;
+      if (nullptr == ctx->data) continue;
       pixel_buffer->height = ctx->height;
       pixel_buffer->width = ctx->width;
       pixel_buffer->stride = ctx->stride;
