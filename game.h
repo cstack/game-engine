@@ -30,10 +30,19 @@ struct world_t {
 
 struct location_t {
   // Which tile map?
-  uint tile_map_x;
-  uint tile_map_y;
+  int tile_map_x;
+  int tile_map_y;
 
   // Where in the tile map?
+  double x;
+  double y;
+};
+
+struct normalized_location_t {
+  // A location modified so x and y are in the bounds of a tile map.
+  int tile_map_x;
+  int tile_map_y;
+
   double x;
   double y;
 };
