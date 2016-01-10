@@ -1,7 +1,6 @@
 #include "game.h"
 
 #include "platform/platform.h"
-#include "engine/color.h"
 #include "engine/util.h"
 
 #include <string.h>
@@ -32,11 +31,11 @@ void draw_box(pixel_buffer_t* pixel_buffer, double x, double y, double width, do
 }
 
 void initialize_game_state(game_state_t &game_state) {
-  game_state.player_x = TILE_WIDTH*2;
-  game_state.player_y = TILE_HEIGHT*5;
+  game_state.player_location.x = TILE_WIDTH*2;
+  game_state.player_location.y = TILE_HEIGHT*5;
 
-  game_state.tile_map_x = 0;
-  game_state.tile_map_y = 0;
+  game_state.player_location.tile_map_x = 0;
+  game_state.player_location.tile_map_y = 0;
 
   game_state.initialized = true;
 }
@@ -60,6 +59,10 @@ bool location_occupied(tile_map_t* tile_map, double x, double y) {
 bool valid_player_location(tile_map_t* tile_map, double x, double y) {
   return !location_occupied(tile_map, x - PLAYER_WIDTH/2, y) &&
     !location_occupied(tile_map, x + PLAYER_WIDTH/2, y);
+}
+
+tile_map_t* get_tile_map(world_t* world, location_t location) {
+  return world->tile_maps + (location.tile_map_y*WORLD_WIDTH + location.tile_map_x);
 }
 
 void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
@@ -114,8 +117,6 @@ void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
   };
 
-  #define WORLD_WIDTH 2
-  #define WORLD_HEIGHT 2
   tile_map_t tile_maps[WORLD_HEIGHT][WORLD_WIDTH];
   tile_maps[0][0].tiles = (tile_t*) tiles_00;
   tile_maps[0][1].tiles = (tile_t*) tiles_01;
@@ -127,13 +128,13 @@ void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
   world.height = WORLD_HEIGHT;
   world.tile_maps = (tile_map_t*) tile_maps;
 
-  tile_map_t* tile_map = &world.tile_maps[game_state.tile_map_y*WORLD_WIDTH + game_state.tile_map_x];
+  tile_map_t* tile_map = get_tile_map(&world, game_state.player_location);
 
   clear_screen(pixel_buffer);
 
   // Move player
-  double new_player_x = game_state.player_x;
-  double new_player_y = game_state.player_y;
+  double new_player_x = game_state.player_location.x;
+  double new_player_y = game_state.player_location.y;
   if (controller.right_pressed) {
     new_player_x += PLAYER_SPEED * dt;
   }
@@ -146,11 +147,11 @@ void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
   if (controller.down_pressed) {
     new_player_y += PLAYER_SPEED * dt;
   }
-  if (valid_player_location(tile_map, new_player_x, game_state.player_y)) {
-    game_state.player_x = new_player_x;
+  if (valid_player_location(tile_map, new_player_x, game_state.player_location.y)) {
+    game_state.player_location.x = new_player_x;
   }
-  if (valid_player_location(tile_map, game_state.player_x, new_player_y)) {
-    game_state.player_y = new_player_y;
+  if (valid_player_location(tile_map, game_state.player_location.x,new_player_y)) {
+    game_state.player_location.y = new_player_y;
   }
 
   // Render tile map
@@ -172,8 +173,8 @@ void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
   // Render Player
   draw_box(
     pixel_buffer,
-    game_state.player_x - PLAYER_WIDTH/2,
-    game_state.player_y - PLAYER_HEIGHT,
+    game_state.player_location.x - PLAYER_WIDTH/2,
+    game_state.player_location.y - PLAYER_HEIGHT,
     PLAYER_WIDTH,
     PLAYER_HEIGHT,
     PLAYER_COLOR
