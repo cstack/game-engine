@@ -34,15 +34,7 @@ struct location_t {
   int tile_map_y;
 
   // Where in the tile map?
-  double x;
-  double y;
-};
-
-struct normalized_location_t {
-  // A location modified so x and y are in the bounds of a tile map.
-  int tile_map_x;
-  int tile_map_y;
-
+  // These values are assumed to be within the bounds of the tile map
   double x;
   double y;
 };
