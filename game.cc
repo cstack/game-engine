@@ -1,41 +1,17 @@
+#include "game.h"
+
 #include "platform/platform.h"
 #include "engine/color.h"
 #include "engine/util.h"
 
 #include <string.h>
-#include <iostream>
 
-const uint SCREEN_WIDTH = 1024;
-const uint SCREEN_HEIGHT = 576;
-
-const uint TILE_MAP_WIDTH = 16;
-const uint TILE_MAP_HEIGHT = 9;
-const uint TILE_WIDTH = SCREEN_WIDTH / TILE_MAP_WIDTH;
-const uint TILE_HEIGHT = SCREEN_HEIGHT / TILE_MAP_HEIGHT;
-const color_t TILE_COLOR = rgb(100, 100, 100);
-const bool TILE_MAP[TILE_MAP_HEIGHT][TILE_MAP_WIDTH] = {
-  {1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1},
-  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-  {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
-  {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
-  {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0},
-  {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
-  {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
-  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-  {1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1},
-};
+game_state_t game_state;
 
 const double PLAYER_WIDTH = TILE_WIDTH;
 const double PLAYER_HEIGHT = PLAYER_WIDTH;
 const color_t PLAYER_COLOR = rgb(150.3, 250.5, 20.6);
 const double PLAYER_SPEED = 128; // in pixels per second
-
-struct games_state_t {
-  games_state_t() : initialized(false) {}
-  bool initialized;
-  double player_x;
-  double player_y;
-} game_state;
 
 void put_pixel(pixel_buffer_t* pixel_buffer, uint x, uint y, color_t color) {
   uint offset = pixel_buffer->width * y + x;
@@ -55,9 +31,12 @@ void draw_box(pixel_buffer_t* pixel_buffer, double x, double y, double width, do
   }
 }
 
-void initialize_game_state(games_state_t &game_state) {
+void initialize_game_state(game_state_t &game_state) {
   game_state.player_x = TILE_WIDTH*2;
   game_state.player_y = TILE_HEIGHT*5;
+
+  game_state.tile_map_x = 0;
+  game_state.tile_map_y = 0;
 
   game_state.initialized = true;
 }
@@ -66,21 +45,89 @@ void clear_screen(pixel_buffer_t* pixel_buffer) {
   draw_box(pixel_buffer, 0, 0, pixel_buffer->width, pixel_buffer->height, BLACK);
 }
 
-bool location_occupied(double x, double y) {
+bool location_occupied(tile_map_t* tile_map, double x, double y) {
+  if (x > TILE_MAP_WIDTH*TILE_WIDTH || x < 0) {
+    return true;
+  }
+  if (y > TILE_MAP_HEIGHT*TILE_HEIGHT || y < 0) {
+    return true;
+  }
   uint row = y / TILE_HEIGHT;
   uint col = x / TILE_WIDTH;
-  return TILE_MAP[row][col];
+  return tile_map->tiles[row*TILE_MAP_WIDTH + col];
 }
 
-bool valid_player_location(double x, double y) {
-  return !location_occupied(x - PLAYER_WIDTH/2, y) &&
-    !location_occupied(x + PLAYER_WIDTH/2, y);
+bool valid_player_location(tile_map_t* tile_map, double x, double y) {
+  return !location_occupied(tile_map, x - PLAYER_WIDTH/2, y) &&
+    !location_occupied(tile_map, x + PLAYER_WIDTH/2, y);
 }
 
 void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
   if (!game_state.initialized) {
+    std::cout << "Initializing game state" << std::endl;
     initialize_game_state(game_state);
   }
+
+  // Define world layout
+  tile_t tiles_00[TILE_MAP_HEIGHT][TILE_MAP_WIDTH] = {
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0},
+    {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1},
+  };
+  tile_t tiles_01[TILE_MAP_HEIGHT][TILE_MAP_WIDTH] = {
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+    {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1},
+  };
+  tile_t tiles_10[TILE_MAP_HEIGHT][TILE_MAP_WIDTH] = {
+    {1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0},
+    {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+  };
+  tile_t tiles_11[TILE_MAP_HEIGHT][TILE_MAP_WIDTH] = {
+    {1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+    {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+  };
+
+  #define WORLD_WIDTH 2
+  #define WORLD_HEIGHT 2
+  tile_map_t tile_maps[WORLD_HEIGHT][WORLD_WIDTH];
+  tile_maps[0][0].tiles = (tile_t*) tiles_00;
+  tile_maps[0][1].tiles = (tile_t*) tiles_01;
+  tile_maps[1][0].tiles = (tile_t*) tiles_10;
+  tile_maps[1][1].tiles = (tile_t*) tiles_11;
+
+  world_t world;
+  world.width = WORLD_WIDTH;
+  world.height = WORLD_HEIGHT;
+  world.tile_maps = (tile_map_t*) tile_maps;
+
+  tile_map_t* tile_map = &world.tile_maps[game_state.tile_map_y*WORLD_WIDTH + game_state.tile_map_x];
 
   clear_screen(pixel_buffer);
 
@@ -99,17 +146,17 @@ void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
   if (controller.down_pressed) {
     new_player_y += PLAYER_SPEED * dt;
   }
-  if (valid_player_location(new_player_x, game_state.player_y)) {
+  if (valid_player_location(tile_map, new_player_x, game_state.player_y)) {
     game_state.player_x = new_player_x;
   }
-  if (valid_player_location(game_state.player_x, new_player_y)) {
+  if (valid_player_location(tile_map, game_state.player_x, new_player_y)) {
     game_state.player_y = new_player_y;
   }
 
   // Render tile map
   for (int row=0; row < TILE_MAP_HEIGHT; row++) {
     for (int col=0; col < TILE_MAP_WIDTH; col++) {
-      if (TILE_MAP[row][col]) {
+      if (tile_map->tiles[row*TILE_MAP_WIDTH + col]) {
         draw_box(
           pixel_buffer,
           col*TILE_WIDTH,
