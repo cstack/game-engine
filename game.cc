@@ -51,9 +51,6 @@ tile_map_t* get_tile_map(world_t* world, location_t location) {
 tile_t get_tile(tile_map_t* tile_map, location_t location) {
   uint row = location.y / TILE_HEIGHT;
   uint col = location.x / TILE_WIDTH;
-  std::cout << "Getting tile in location:" << std::endl;
-  std::cout << "x " << location.tile_map_x << "->" << location.x << "row (" << row << ")" << std::endl;
-  std::cout << "y " << location.tile_map_y << "->" << location.y << "col (" << col << ")" << std::endl;
   return tile_map->tiles[row*TILE_MAP_WIDTH + col];
 }
 
@@ -94,7 +91,6 @@ bool valid_player_location(world_t* world, location_t location) {
 
 void update(double dt, pixel_buffer_t* pixel_buffer, controller_t &controller) {
   if (!game_state.initialized) {
-    std::cout << "Initializing game state" << std::endl;
     initialize_game_state(game_state);
   }
 
