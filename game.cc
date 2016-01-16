@@ -7,10 +7,16 @@
 
 game_state_t game_state;
 
-const double PLAYER_WIDTH = TILE_WIDTH;
-const double PLAYER_HEIGHT = PLAYER_WIDTH;
+const double PLAYER_WIDTH_METERS = 0.8;
+const double PLAYER_WIDTH = PLAYER_WIDTH_METERS * METERS_TO_PIXELS;
+
+const double PLAYER_HEIGHT_METERS = 1.0;
+const double PLAYER_HEIGHT = PLAYER_HEIGHT_METERS * METERS_TO_PIXELS;
+
 const color_t PLAYER_COLOR = rgb(150.3, 250.5, 20.6);
-const double PLAYER_SPEED = 128; // in pixels per second
+
+const double PLAYER_SPEED_METERS_PER_SECOND = 3.0;
+const double PLAYER_SPEED = PLAYER_SPEED_METERS_PER_SECOND * METERS_TO_PIXELS;
 
 void put_pixel(pixel_buffer_t* pixel_buffer, uint x, uint y, color_t color) {
   uint offset = pixel_buffer->width * y + x;

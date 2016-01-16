@@ -12,6 +12,9 @@ const uint WORLD_WIDTH = 2;
 const uint WORLD_HEIGHT = 2;
 const uint TILE_MAP_WIDTH = 16;
 const uint TILE_MAP_HEIGHT = 9;
+
+const double METERS_TO_PIXELS = SCREEN_WIDTH / TILE_MAP_WIDTH; // Each tile is a meter
+
 const uint TILE_WIDTH = SCREEN_WIDTH / TILE_MAP_WIDTH;
 const uint TILE_HEIGHT = SCREEN_HEIGHT / TILE_MAP_HEIGHT;
 const color_t TILE_COLOR = rgb(100, 100, 100);
