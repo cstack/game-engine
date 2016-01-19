@@ -1,7 +1,7 @@
 {
   "name": "My First Game",
   "description": "My First Game",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "manifest_version": 2,
   "app": {
     "background": {
