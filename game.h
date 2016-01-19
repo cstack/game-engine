@@ -8,12 +8,12 @@
 const uint SCREEN_WIDTH = 1024;
 const uint SCREEN_HEIGHT = 576;
 
-const uint WORLD_WIDTH_IN_SCREENS = 2;
-const uint WORLD_HEIGHT_IN_SCREENS = 2;
+const uint TILE_CHUNK_LOWER_BITS = 4;
+const uint TILE_CHUNK_SIZE = 1 << 4;
+const uint TILE_CHUNK_LOWER_BITS_MASK = TILE_CHUNK_SIZE - 1;
+
 const uint TILES_PER_SCREEN_X = 16;
 const uint TILES_PER_SCREEN_Y = 9;
-const uint WORLD_WIDTH = WORLD_HEIGHT_IN_SCREENS*TILES_PER_SCREEN_X;
-const uint WORLD_HEIGHT = WORLD_HEIGHT_IN_SCREENS*TILES_PER_SCREEN_Y;
 
 const double METERS_TO_PIXELS = SCREEN_WIDTH / TILES_PER_SCREEN_X; // Each tile is a meter
 
@@ -23,14 +23,12 @@ const color_t TILE_COLOR = rgb(100, 100, 100);
 
 typedef bool tile_t;
 
-struct tile_map_t {
+struct tile_chunk_t {
   tile_t* tiles;
 };
 
 struct world_t {
-  tile_t* tiles;
-  uint width;
-  uint height;
+  tile_chunk_t* tile_chunks;
 };
 
 typedef double meters;

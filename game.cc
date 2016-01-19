@@ -18,27 +18,141 @@ const color_t PLAYER_COLOR = rgb(150.3, 250.5, 20.6);
 const double PLAYER_SPEED_METERS_PER_SECOND = 3.0;
 const double PLAYER_SPEED = PLAYER_SPEED_METERS_PER_SECOND * METERS_TO_PIXELS;
 
-// Define world layout
-tile_t tiles[WORLD_HEIGHT][WORLD_WIDTH] = {
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-  {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1},
-  {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1},
-  {1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-  {1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-  {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1},
-  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-  {1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1},
-  {1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1},
-  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1},
-  {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
-  {1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-  {1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
-  {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1},
-  {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-};
+const uint TILE_CHUNK_COUNT_X = 128;
+const uint TILE_CHUNK_COUNT_Y = 128;
+
+const uint KILOBYTE = 1024;
+const uint MEGABYTE = 1024 * KILOBYTE;
+const uint MEMORY_POOL_BYTES = 64 * MEGABYTE;
+
+char memory_pool[MEMORY_POOL_BYTES] = {};
+uint allocated_bytes = 0;
+
+void assert(bool expression, const char* message) {
+  if (!expression) {
+    std::cout << message << std::endl;
+    exit(1);
+  }
+}
+
+void* allocate_memory(uint bytes) {
+  assert(bytes <= MEMORY_POOL_BYTES - allocated_bytes, "Tried to allocate more than MEMORY_POOL_BYTES bytes");
+  char* memory = memory_pool + allocated_bytes;
+  allocated_bytes += bytes;
+  return memory;
+}
+
+tile_chunk_t* make_tile_chunks() {
+  uint num_tile_chunks = TILE_CHUNK_COUNT_X * TILE_CHUNK_COUNT_Y;
+  tile_chunk_t* tile_chunks = (tile_chunk_t*) allocate_memory(num_tile_chunks * sizeof(tile_chunk_t));
+  for (uint i = 0; i < num_tile_chunks; i++) {
+    tile_chunks[i].tiles = (tile_t*) allocate_memory(TILE_CHUNK_SIZE * TILE_CHUNK_SIZE * sizeof(tile_t));
+  }
+  return tile_chunks;
+}
+
+tile_chunk_t* get_tile_chunk(world_t* world, uint tile_x, uint tile_y) {
+  uint tile_chunk_x = tile_x >> TILE_CHUNK_LOWER_BITS;
+  uint tile_chunk_y = tile_y >> TILE_CHUNK_LOWER_BITS;
+
+  if (tile_chunk_x >= TILE_CHUNK_COUNT_X || tile_chunk_y >= TILE_CHUNK_COUNT_Y) {
+    return nullptr;
+  }
+  
+  return world->tile_chunks + tile_chunk_y*TILE_CHUNK_COUNT_X + tile_chunk_x;
+}
+
+void set_tile(world_t* world, uint tile_x, uint tile_y, tile_t value) {
+  std::cout << "set_tile(" << tile_x << ", " << tile_y << ")" << std::endl;
+  tile_chunk_t* tile_chunk = get_tile_chunk(world, tile_x, tile_y);
+
+  // TODO: Lazily instantiate tiles
+  assert(tile_chunk->tiles, "Tile chunk does not have any tiles allocated.");
+
+  uint tile_x_relative_to_chunk = tile_x & TILE_CHUNK_LOWER_BITS_MASK;
+  uint tile_y_relative_to_chunk = tile_y & TILE_CHUNK_LOWER_BITS_MASK;
+  tile_chunk->tiles[tile_y_relative_to_chunk*TILE_CHUNK_SIZE + tile_x_relative_to_chunk] = value;
+}
+
+tile_t get_tile(world_t* world, uint tile_x, uint tile_y) {
+  tile_chunk_t* tile_chunk = get_tile_chunk(world, tile_x, tile_y);
+
+  if (!tile_chunk || !tile_chunk->tiles) {
+    return 0; // We haven't defined anything at this location
+  }
+
+  uint tile_x_relative_to_chunk = tile_x & TILE_CHUNK_LOWER_BITS_MASK;
+  uint tile_y_relative_to_chunk = tile_y & TILE_CHUNK_LOWER_BITS_MASK;
+  tile_t tile = tile_chunk->tiles[tile_y_relative_to_chunk*TILE_CHUNK_SIZE + tile_x_relative_to_chunk];
+
+  return tile;
+}
+
+void fill_world_with_rooms(world_t* world) {
+  uint room_count_y = 5;
+  uint room_count_x = 5;
+
+  for (uint row = 0; row < room_count_x; row++) {
+    uint top_left_y = row * TILES_PER_SCREEN_Y;
+
+    for (uint col = 0; col < room_count_y; col++) {
+      uint top_left_x = col * TILES_PER_SCREEN_X;
+
+      bool has_top_door = row > 0;
+      bool has_bottom_door = row < room_count_y - 1;
+      bool has_left_door = col > 0;
+      bool has_right_door = col < room_count_x - 1;
+
+      // Top wall
+      uint vertical_door_x = TILES_PER_SCREEN_X / 2;
+      for (int i = 0; i < TILES_PER_SCREEN_X; i++) {
+        if (has_top_door && (i == vertical_door_x || i == vertical_door_x - 1)) {
+          // Leave a door
+        } else {
+          set_tile(world, top_left_x + i, top_left_y, 1);
+        }
+      }
+      
+      // Bottom wall
+      for (int i = 0; i < TILES_PER_SCREEN_X; i++) {
+        if (has_bottom_door && (i == vertical_door_x || i == vertical_door_x - 1)) {
+          // Leave a door
+        } else {
+          set_tile(world, top_left_x + i, top_left_y + TILES_PER_SCREEN_Y - 1, 1);
+        }
+      }
+
+      // Left wall
+      uint horizontal_door_y = TILES_PER_SCREEN_Y / 2;
+      for (int i = 0; i < TILES_PER_SCREEN_Y; i++) {
+        if (has_left_door && i == horizontal_door_y) {
+          // Leave a door
+        } else {
+          set_tile(world, top_left_x, top_left_y + i, 1);
+        }
+      }
+
+      // Right wall
+      for (int i = 0; i < TILES_PER_SCREEN_Y; i++) {
+        if (has_right_door && i == horizontal_door_y) {
+          // Leave a door
+        } else {
+          set_tile(world, top_left_x + TILES_PER_SCREEN_X - 1, top_left_y + i, 1);
+        }
+      }
+
+      // A pattern in the center
+      for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 3; j++) {
+          uint hash = i+j+row*room_count_x+col;
+          if (hash % 3 == 0 || hash % 4 == 0 || hash % 5 == 0) {
+            set_tile(world, top_left_x + vertical_door_x - 1 + i, top_left_y + horizontal_door_y - 1 + j, 1);
+          }
+        }
+      }
+    }
+  }
+}
 
 void put_pixel(pixel_buffer_t* pixel_buffer, uint x, uint y, color_t color) {
   uint offset = pixel_buffer->width * y + x;
@@ -64,9 +178,8 @@ void initialize_game_state(game_state_t &game_state) {
   game_state.player_location.x = 0;
   game_state.player_location.y = 0;
 
-  game_state.world.width = WORLD_WIDTH;
-  game_state.world.height = WORLD_HEIGHT;
-  game_state.world.tiles = (tile_t*) tiles;
+  game_state.world.tile_chunks = make_tile_chunks();
+  fill_world_with_rooms(&game_state.world);
 
   game_state.initialized = true;
 }
@@ -92,9 +205,6 @@ screen_location_t get_screen_location(location_t location) {
   return screen_location;
 }
 
-tile_t get_tile(world_t* world, uint tile_x, uint tile_y) {
-  return world->tiles[tile_y*world->width + tile_x];
-}
 
 tile_t get_tile(world_t* world, location_t location) {
   return get_tile(world, location.tile_x, location.tile_y);
