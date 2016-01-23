@@ -88,68 +88,80 @@ tile_t get_tile(world_t* world, uint tile_x, uint tile_y) {
   return tile;
 }
 
+void create_room(
+  world_t* world,
+  uint room_index_x,
+  uint room_index_y,
+  bool door_left,
+  bool door_right,
+  bool door_top,
+  bool door_bottom,
+  uint pattern) {
+  uint top_left_y = room_index_y * TILES_PER_SCREEN_Y;
+  uint top_left_x = room_index_x * TILES_PER_SCREEN_X;
+
+  // Top wall
+  uint vertical_door_x = TILES_PER_SCREEN_X / 2;
+  for (int i = 0; i < TILES_PER_SCREEN_X; i++) {
+    if (door_top && (i == vertical_door_x || i == vertical_door_x - 1)) {
+      // Leave a door
+    } else {
+      set_tile(world, top_left_x + i, top_left_y, 1);
+    }
+  }
+
+  // Bottom wall
+  for (int i = 0; i < TILES_PER_SCREEN_X; i++) {
+    if (door_bottom && (i == vertical_door_x || i == vertical_door_x - 1)) {
+      // Leave a door
+    } else {
+      set_tile(world, top_left_x + i, top_left_y + TILES_PER_SCREEN_Y - 1, 1);
+    }
+  }
+
+  // Left wall
+  uint horizontal_door_y = TILES_PER_SCREEN_Y / 2;
+  for (int i = 0; i < TILES_PER_SCREEN_Y; i++) {
+    if (door_left && i == horizontal_door_y) {
+      // Leave a door
+    } else {
+      set_tile(world, top_left_x, top_left_y + i, 1);
+    }
+  }
+
+  // Right wall
+  for (int i = 0; i < TILES_PER_SCREEN_Y; i++) {
+    if (door_right && i == horizontal_door_y) {
+      // Leave a door
+    } else {
+      set_tile(world, top_left_x + TILES_PER_SCREEN_X - 1, top_left_y + i, 1);
+    }
+  }
+
+  // A pattern in the center
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 3; j++) {
+      uint hash = pattern + i + 10 * j;
+      if (hash % 3 == 0 || hash % 4 == 0 || hash % 5 == 0) {
+        set_tile(world, top_left_x + vertical_door_x - 1 + i, top_left_y + horizontal_door_y - 1 + j, 1);
+      }
+    }
+  }
+}
+
 void fill_world_with_rooms(world_t* world) {
   uint room_count_y = 5;
   uint room_count_x = 5;
 
   for (uint row = 0; row < room_count_x; row++) {
-    uint top_left_y = row * TILES_PER_SCREEN_Y;
-
     for (uint col = 0; col < room_count_y; col++) {
-      uint top_left_x = col * TILES_PER_SCREEN_X;
-
       bool has_top_door = row > 0;
       bool has_bottom_door = row < room_count_y - 1;
       bool has_left_door = col > 0;
       bool has_right_door = col < room_count_x - 1;
+      uint pattern = row * 3 + col * 7;
 
-      // Top wall
-      uint vertical_door_x = TILES_PER_SCREEN_X / 2;
-      for (int i = 0; i < TILES_PER_SCREEN_X; i++) {
-        if (has_top_door && (i == vertical_door_x || i == vertical_door_x - 1)) {
-          // Leave a door
-        } else {
-          set_tile(world, top_left_x + i, top_left_y, 1);
-        }
-      }
-      
-      // Bottom wall
-      for (int i = 0; i < TILES_PER_SCREEN_X; i++) {
-        if (has_bottom_door && (i == vertical_door_x || i == vertical_door_x - 1)) {
-          // Leave a door
-        } else {
-          set_tile(world, top_left_x + i, top_left_y + TILES_PER_SCREEN_Y - 1, 1);
-        }
-      }
-
-      // Left wall
-      uint horizontal_door_y = TILES_PER_SCREEN_Y / 2;
-      for (int i = 0; i < TILES_PER_SCREEN_Y; i++) {
-        if (has_left_door && i == horizontal_door_y) {
-          // Leave a door
-        } else {
-          set_tile(world, top_left_x, top_left_y + i, 1);
-        }
-      }
-
-      // Right wall
-      for (int i = 0; i < TILES_PER_SCREEN_Y; i++) {
-        if (has_right_door && i == horizontal_door_y) {
-          // Leave a door
-        } else {
-          set_tile(world, top_left_x + TILES_PER_SCREEN_X - 1, top_left_y + i, 1);
-        }
-      }
-
-      // A pattern in the center
-      for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 3; j++) {
-          uint hash = i+j+row*room_count_x+col;
-          if (hash % 3 == 0 || hash % 4 == 0 || hash % 5 == 0) {
-            set_tile(world, top_left_x + vertical_door_x - 1 + i, top_left_y + horizontal_door_y - 1 + j, 1);
-          }
-        }
-      }
+      create_room(world, col, row, has_left_door, has_right_door, has_top_door, has_bottom_door, pattern);
     }
   }
 }
