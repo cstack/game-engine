@@ -4,6 +4,8 @@
 #include "engine/util.h"
 
 #include <string.h>
+#include <cstdlib>
+#include <ctime>
 
 game_state_t game_state;
 
@@ -95,8 +97,7 @@ void create_room(
   bool door_left,
   bool door_right,
   bool door_top,
-  bool door_bottom,
-  uint pattern) {
+  bool door_bottom) {
   uint top_left_y = room_index_y * TILES_PER_SCREEN_Y;
   uint top_left_x = room_index_x * TILES_PER_SCREEN_X;
 
@@ -139,29 +140,60 @@ void create_room(
   }
 
   // A pattern in the center
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 3; j++) {
-      uint hash = pattern + i + 10 * j;
-      if (hash % 3 == 0 || hash % 4 == 0 || hash % 5 == 0) {
-        set_tile(world, top_left_x + vertical_door_x - 1 + i, top_left_y + horizontal_door_y - 1 + j, 1);
+      if (rand() % 3 == 0) {
+        set_tile(world, top_left_x + vertical_door_x - 2 + i, top_left_y + horizontal_door_y - 1 + j, 1);
       }
     }
   }
 }
 
 void fill_world_with_rooms(world_t* world) {
-  uint room_count_y = 5;
-  uint room_count_x = 5;
+  std::srand(std::time(nullptr));
+  bool door_top = false;
+  bool door_bottom = false;
+  bool door_right = false;
+  bool door_left = false;
 
-  for (uint row = 0; row < room_count_x; row++) {
-    for (uint col = 0; col < room_count_y; col++) {
-      bool has_top_door = row > 0;
-      bool has_bottom_door = row < room_count_y - 1;
-      bool has_left_door = col > 0;
-      bool has_right_door = col < room_count_x - 1;
-      uint pattern = row * 3 + col * 7;
+  uint room_index_x = 0;
+  uint room_index_y = 0;
+  uint next_room_index_x = 0;
+  uint next_room_index_y = 0;
 
-      create_room(world, col, row, has_left_door, has_right_door, has_top_door, has_bottom_door, pattern);
+  for (uint room = 0; room < 10; room++) {
+    int direction = std::rand() % 2;
+
+    switch (direction) {
+      case (0):
+      door_right = true;
+      next_room_index_x = room_index_x + 1;
+      break;
+
+      case (1):
+      door_bottom = true;
+      next_room_index_y = room_index_y + 1;
+      break;
+    }
+    create_room(world, room_index_x, room_index_y, door_left, door_right, door_top, door_bottom);
+
+    door_top = door_bottom;
+    door_bottom = false;
+    door_left = door_right;
+    door_right = false;
+
+    room_index_x = next_room_index_x;
+    room_index_y = next_room_index_y;
+  }
+
+  // Craziness at the end
+  uint top_left_y = room_index_y * TILES_PER_SCREEN_Y;
+  uint top_left_x = room_index_x * TILES_PER_SCREEN_X;
+  for (int i = 1; i < TILES_PER_SCREEN_X-1; i++) {
+    for (int j = 1; j < TILES_PER_SCREEN_Y-1; j++) {
+      if (rand() % 3 == 0) {
+        set_tile(world, top_left_x + i, top_left_y + j, 1);
+      }
     }
   }
 }
